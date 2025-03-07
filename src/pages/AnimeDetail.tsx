@@ -12,20 +12,17 @@ import VideoPlayer from '@/components/VideoPlayer';
 import EpisodeList from '@/components/EpisodeList';
 import AnimeGrid from '@/components/AnimeGrid';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { getAnimeById, getEpisodesByAnimeId, getRecommendedAnime } from '@/lib/data-detail';
 import { Anime, Episode } from '@/lib/types';
+import { fetchAnimeDetails, fetchAnimeEpisodes, fetchAnimeRecommendations, mapJikanAnimeToAnime, mapJikanEpisodeToEpisode } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 
 const AnimeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-  const [anime, setAnime] = useState<Anime | null>(null);
-  const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [currentEpisode, setCurrentEpisode] = useState<Episode | null>(null);
-  const [recommendedAnime, setRecommendedAnime] = useState<Anime[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [inWatchlist, setInWatchlist] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const animeId = parseInt(id || '1', 10);
 
   // Check local storage for theme preference
   useEffect(() => {
@@ -46,46 +43,66 @@ const AnimeDetail = () => {
     }
   };
 
-  // Fetch anime data
+  // Fetch anime details using React Query
+  const { 
+    data: anime, 
+    isLoading: animeLoading, 
+    error: animeError 
+  } = useQuery({
+    queryKey: ['anime', animeId],
+    queryFn: async () => {
+      const data = await fetchAnimeDetails(animeId);
+      return mapJikanAnimeToAnime(data);
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+
+  // Fetch episodes using React Query
+  const { 
+    data: episodes = [], 
+    isLoading: episodesLoading, 
+    error: episodesError 
+  } = useQuery({
+    queryKey: ['episodes', animeId],
+    queryFn: async () => {
+      const data = await fetchAnimeEpisodes(animeId);
+      return data.map((episode: any) => mapJikanEpisodeToEpisode(episode, animeId));
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+
+  // Fetch recommended anime using React Query
+  const { 
+    data: recommendedAnime = [], 
+    isLoading: recommendedLoading, 
+    error: recommendedError 
+  } = useQuery({
+    queryKey: ['recommended', animeId],
+    queryFn: async () => {
+      const recommendations = await fetchAnimeRecommendations(animeId);
+      return recommendations.slice(0, 6).map(mapJikanAnimeToAnime);
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+
+  // Set first episode as current when episodes are loaded
   useEffect(() => {
-    const animeId = parseInt(id || '1', 10);
+    if (episodes.length > 0 && !currentEpisode) {
+      setCurrentEpisode(episodes[0]);
+    }
+  }, [episodes, currentEpisode]);
+
+  // Check if anime is in watchlist
+  useEffect(() => {
+    if (!anime) return;
     
     try {
-      setLoading(true);
-      
-      // Get anime details
-      const animeData = getAnimeById(animeId);
-      if (!animeData) {
-        setError('Anime not found');
-        return;
-      }
-      
-      setAnime(animeData);
-      
-      // Get episodes
-      const episodesData = getEpisodesByAnimeId(animeId);
-      setEpisodes(episodesData);
-      
-      // Set first episode as current
-      if (episodesData.length > 0) {
-        setCurrentEpisode(episodesData[0]);
-      }
-      
-      // Get recommended anime
-      const recommended = getRecommendedAnime(animeId);
-      setRecommendedAnime(recommended);
-      
-      // Check if anime is in watchlist
-      // This would normally use Supabase, but for now we'll mock it with localStorage
       const watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
       setInWatchlist(watchlist.some((item: any) => item.animeId === animeId));
     } catch (err) {
-      setError('Failed to load anime details');
-      console.error(err);
-    } finally {
-      setLoading(false);
+      console.error("Error checking watchlist", err);
     }
-  }, [id]);
+  }, [anime, animeId]);
 
   const handleEpisodeSelect = (episode: Episode) => {
     setCurrentEpisode(episode);
@@ -136,7 +153,10 @@ const AnimeDetail = () => {
     }
   };
 
-  if (loading) {
+  const isLoading = animeLoading || episodesLoading;
+  const error = animeError || episodesError || recommendedError;
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
@@ -159,7 +179,7 @@ const AnimeDetail = () => {
         <div className="flex-grow container px-4 py-8 mx-auto flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Error</h1>
-            <p className="text-muted-foreground mb-6">{error || 'Something went wrong'}</p>
+            <p className="text-muted-foreground mb-6">{error ? (error as Error).message : 'Something went wrong'}</p>
             <Button onClick={() => window.location.href = '/'}>
               Return to Home
             </Button>
@@ -213,7 +233,7 @@ const AnimeDetail = () => {
                 </div>
                 
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {anime.genres.map(genre => (
+                  {anime.genres.map((genre: string) => (
                     <Badge key={genre} variant="secondary">
                       {genre}
                     </Badge>
@@ -229,7 +249,7 @@ const AnimeDetail = () => {
                     <h3 className="text-lg font-semibold mb-2">
                       Currently Playing: Episode {currentEpisode.number} - {currentEpisode.title}
                     </h3>
-                    <Button onClick={() => handleEpisodeSelect(episodes[0])} variant="outline" size="sm">
+                    <Button onClick={() => episodes.length > 0 && handleEpisodeSelect(episodes[0])} variant="outline" size="sm">
                       <Play className="mr-2 h-4 w-4" /> Start from Episode 1
                     </Button>
                   </div>
