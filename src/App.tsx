@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import AnimeDetail from "./pages/AnimeDetail";
 import WatchParty from "./pages/WatchParty";
+import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/anime/:id" element={<AnimeDetail />} />
           <Route path="/watch-party" element={<WatchParty />} />
           <Route path="/watch-party/:roomId" element={<WatchParty />} />
+          <Route path="/profile" element={<UserProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
