@@ -1,5 +1,6 @@
 
 import { Anime, Episode, Subtitle } from '@/lib/types';
+import { animeData } from './data';
 
 // Mock data for episodes
 const mockEpisodes: Episode[] = [
@@ -71,19 +72,8 @@ const mockEpisodes: Episode[] = [
 
 // Get anime by ID
 export const getAnimeById = (id: number): Anime | undefined => {
-  // Import the anime data from the original data file
-  const { getTrendingAnime, getPopularAnime, getRecentlyUpdatedAnime, getSeasonalAnime } = require('./data');
-  
-  // Combine all anime from different categories
-  const allAnime = [
-    ...getTrendingAnime(),
-    ...getPopularAnime(),
-    ...getRecentlyUpdatedAnime(),
-    ...getSeasonalAnime()
-  ];
-  
-  // Find the anime with the matching ID
-  return allAnime.find(anime => anime.id === id);
+  // Find the anime with the matching ID directly from the imported animeData
+  return animeData.find(anime => anime.id === id);
 };
 
 // Get episodes by anime ID
@@ -93,10 +83,9 @@ export const getEpisodesByAnimeId = (animeId: number): Episode[] => {
 
 // Get recommended anime based on the current anime ID
 export const getRecommendedAnime = (currentAnimeId: number): Anime[] => {
-  // Import the anime data from the original data file
-  const { getPopularAnime } = require('./data');
-  
-  // For simplicity, we'll just return popular anime
+  // For simplicity, we'll just return other anime
   // In a real app, this would use an algorithm or API to get related anime
-  return getPopularAnime().filter(anime => anime.id !== currentAnimeId);
+  return animeData
+    .filter(anime => anime.id !== currentAnimeId)
+    .slice(0, 6); // Return at most 6 recommendations
 };

@@ -12,7 +12,7 @@ import VideoPlayer from '@/components/VideoPlayer';
 import EpisodeList from '@/components/EpisodeList';
 import AnimeGrid from '@/components/AnimeGrid';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { getAnimeById, getEpisodesByAnimeId, getRecommendedAnime } from '@/lib/data';
+import { getAnimeById, getEpisodesByAnimeId, getRecommendedAnime } from '@/lib/data-detail';
 import { Anime, Episode } from '@/lib/types';
 
 const AnimeDetail = () => {
