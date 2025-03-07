@@ -1,95 +1,93 @@
 
+import React from 'react';
 import { Anime } from '@/lib/types';
-import { Play, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface AnimeCardProps {
   anime: Anime;
   variant?: 'default' | 'trending' | 'small';
-  className?: string;
 }
 
-const AnimeCard = ({ 
-  anime, 
-  variant = 'default',
-  className 
-}: AnimeCardProps) => {
-  const isDefault = variant === 'default';
-  const isTrending = variant === 'trending';
-  const isSmall = variant === 'small';
-
-  return (
-    <div 
-      className={cn(
-        'relative group rounded-xl overflow-hidden card-hover', 
-        isDefault && 'aspect-[2/3]',
-        isTrending && 'aspect-[16/9]',
-        isSmall && 'aspect-[1/1]',
-        className
-      )}
-    >
-      {/* Image */}
-      <div className="absolute inset-0">
-        <img 
-          src={anime.image} 
-          alt={anime.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          loading="lazy"
-        />
-      </div>
-      
-      {/* Overlay gradient */}
-      <div className={cn(
-        'absolute inset-0',
-        'bg-gradient-to-t from-black/80 via-black/40 to-transparent',
-        'opacity-80 group-hover:opacity-100 transition-opacity duration-300'
-      )} />
-
-      {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end p-4">
-        {/* Title */}
-        <h3 className={cn(
-          'font-bold text-white mb-1 group-hover:text-primary transition-colors duration-200',
-          isDefault && 'text-sm sm:text-base',
-          isTrending && 'text-base sm:text-xl',
-          isSmall && 'text-xs sm:text-sm'
-        )}>
-          {anime.title}
-        </h3>
-        
-        {/* Info */}
-        <div className="flex items-center text-xs text-white/80 mb-2">
-          <div className="flex items-center mr-3">
-            <Star className="w-3 h-3 text-yellow-400 mr-1" />
-            <span>{anime.rating.toFixed(1)}</span>
+const AnimeCard = ({ anime, variant = 'default' }: AnimeCardProps) => {
+  if (variant === 'small') {
+    return (
+      <Link to={`/anime/${anime.id}`} className="block">
+        <div className="relative rounded-lg overflow-hidden card-hover">
+          <img 
+            src={anime.image} 
+            alt={anime.title} 
+            className="w-full h-auto aspect-[3/4] object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 p-2">
+            <h3 className="text-white text-sm font-medium line-clamp-1">{anime.title}</h3>
+            <div className="flex items-center mt-1">
+              <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+              <span className="text-white text-xs ml-1">{anime.rating.toFixed(1)}</span>
+            </div>
           </div>
-          <span className="mr-3">{anime.episodes} eps</span>
-          <span className="truncate">{anime.genres.slice(0, 2).join(', ')}</span>
         </div>
-        
-        {/* Description - only visible on larger variants */}
-        {!isSmall && (
-          <p className={cn(
-            "text-white/70 mb-3 line-clamp-2 text-xs",
-            isDefault && "hidden sm:block",
-            isTrending && "block"
-          )}>
-            {anime.description}
-          </p>
-        )}
-        
-        {/* Play button - only visible on hover */}
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Button 
-            size={isSmall ? "sm" : "default"}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Play className="w-4 h-4 mr-2" /> Watch Now
-          </Button>
+      </Link>
+    );
+  }
+
+  if (variant === 'trending') {
+    return (
+      <Link to={`/anime/${anime.id}`} className="block">
+        <div className="relative rounded-lg overflow-hidden card-hover">
+          <img 
+            src={anime.image} 
+            alt={anime.title} 
+            className="w-full h-auto aspect-video object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <h2 className="text-white text-lg md:text-xl font-bold mb-1">{anime.title}</h2>
+            <div className="flex items-center mb-2">
+              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+              <span className="text-white text-sm ml-1">{anime.rating.toFixed(1)}</span>
+              <span className="text-white text-sm ml-2">{anime.episodes} Episodes</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {anime.genres.slice(0, 3).map((genre, index) => (
+                <span key={index} className="text-xs px-2 py-0.5 bg-white/20 rounded-full text-white">
+                  {genre}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
+  // Default variant
+  return (
+    <Link to={`/anime/${anime.id}`} className="block">
+      <div className="rounded-lg overflow-hidden card-hover">
+        <div className="relative">
+          <img 
+            src={anime.image} 
+            alt={anime.title} 
+            className="w-full h-auto aspect-[3/4] object-cover"
+          />
+          {anime.trending && (
+            <span className="absolute top-2 left-2 text-xs px-2 py-0.5 bg-primary rounded-full text-white">
+              Trending
+            </span>
+          )}
+          <div className="absolute bottom-0 left-0 right-0 flex items-center p-2 bg-black/60">
+            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+            <span className="text-white text-sm ml-1">{anime.rating.toFixed(1)}</span>
+          </div>
+        </div>
+        <div className="p-2">
+          <h3 className="font-medium line-clamp-2">{anime.title}</h3>
+          <p className="text-xs text-muted-foreground mt-1">{anime.episodes} Episodes</p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
