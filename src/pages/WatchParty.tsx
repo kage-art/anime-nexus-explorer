@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Socket, io } from 'socket.io-client';
@@ -14,7 +13,7 @@ import type { Episode } from '@/lib/types';
 import VideoChat from '@/components/VideoChat';
 import ChatPanel from '@/components/ChatPanel';
 import ControlPanel from '@/components/ControlPanel';
-import { X, Copy, UserPlus, Lock, Unlock, Video, VideoOff, Mic, MicOff, TheatreMode, Monitor } from 'lucide-react';
+import { X, Copy, UserPlus, Lock, Unlock, Video, VideoOff, Mic, MicOff, Layout, Monitor } from 'lucide-react';
 
 interface WatchPartyProps {}
 
@@ -41,7 +40,6 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
   const [userName, setUserName] = useState(`Guest ${Math.floor(Math.random() * 1000)}`);
   
   useEffect(() => {
-    // For demo purposes, load the first episode of anime with ID 1
     const tempAnimeId = 1;
     setAnimeId(tempAnimeId);
     const episodes = getEpisodesByAnimeId(tempAnimeId);
@@ -49,11 +47,9 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
       setEpisode(episodes[0]);
     }
     
-    // If roomId is provided, join the room
     if (roomId) {
       joinRoom(roomId);
     } else {
-      // If no roomId, create a new room
       createRoom();
     }
     
@@ -68,18 +64,10 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
   }, [roomId]);
   
   const createRoom = () => {
-    // Generate a random room ID
     const newRoomId = Math.random().toString(36).substring(2, 8);
-    
-    // Initialize socket connection
     initializeSocketConnection(newRoomId);
-    
-    // Set as room creator
     setIsCreator(true);
-    
-    // Navigate to the new room URL
     navigate(`/watch-party/${newRoomId}`);
-    
     toast({
       title: "Room Created",
       description: `Room ID: ${newRoomId}`,
@@ -87,9 +75,7 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
   };
   
   const joinRoom = (roomId: string) => {
-    // Initialize socket connection
     initializeSocketConnection(roomId);
-    
     toast({
       title: "Joining Room",
       description: `Connecting to room ${roomId}...`,
@@ -97,7 +83,6 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
   };
   
   const initializeSocketConnection = (roomId: string) => {
-    // In a real app, this would be your backend server URL
     const socket = io('https://your-socket-server.com', {
       query: {
         roomId,
@@ -163,12 +148,9 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
     });
     
     socket.on('videoControl', (data) => {
-      // Video control events (play, pause, seek, etc.)
       console.log('Received video control', data);
-      // In a real implementation, this would update the VideoPlayer component
     });
     
-    // Initialize peer connection for WebRTC
     const peer = new Peer(userId, {
       host: 'your-peerjs-server.com',
       port: 443,
@@ -213,7 +195,6 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
     if (isCreator) {
       setIsPasswordProtected(!isPasswordProtected);
       if (!isPasswordProtected) {
-        // Generate random password if enabling protection
         const newPassword = Math.random().toString(36).substring(2, 8);
         setPassword(newPassword);
         socketRef.current?.emit('setRoomPassword', newPassword);
@@ -222,7 +203,6 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
           description: `Room password: ${newPassword}`,
         });
       } else {
-        // Remove password if disabling protection
         setPassword('');
         socketRef.current?.emit('removeRoomPassword');
         toast({
@@ -249,12 +229,10 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
   
   const toggleMic = () => {
     setIsMicEnabled(!isMicEnabled);
-    // In a real implementation, this would enable/disable the user's microphone
   };
   
   const toggleVideo = () => {
     setIsVideoEnabled(!isVideoEnabled);
-    // In a real implementation, this would enable/disable the user's camera
   };
   
   const toggleTheaterMode = () => {
@@ -286,7 +264,6 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
   
   return (
     <div className={`flex flex-col min-h-screen ${isTheaterMode ? 'bg-black' : 'bg-background'}`}>
-      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-card">
         <div className="flex items-center space-x-2">
           <h1 className="text-xl font-bold">Watch Party</h1>
@@ -315,11 +292,8 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
         </div>
       </div>
       
-      {/* Main content */}
       <div className={`flex flex-col md:flex-row flex-1 ${isTheaterMode ? 'p-0' : 'p-4'}`}>
-        {/* Video player area */}
         <div className={`flex flex-col ${isTheaterMode ? 'w-full' : 'md:w-3/4'}`}>
-          {/* Video player */}
           <div className="relative bg-black rounded-lg overflow-hidden">
             {episode ? (
               <VideoPlayer episode={episode} autoplay={false} />
@@ -330,7 +304,6 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
             )}
           </div>
           
-          {/* Control panel */}
           <div className="flex flex-wrap items-center justify-between p-2 mt-2 bg-card rounded-lg">
             <div className="flex items-center space-x-2">
               <Button 
@@ -369,12 +342,11 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
                 size="sm" 
                 onClick={toggleTheaterMode}
               >
-                {isTheaterMode ? <Monitor className="h-4 w-4" /> : <TheatreMode className="h-4 w-4" />}
+                {isTheaterMode ? <Monitor className="h-4 w-4" /> : <Layout className="h-4 w-4" />}
               </Button>
             </div>
           </div>
           
-          {/* Participant videos */}
           {!isTheaterMode && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mt-4">
               {participants.map((participant) => (
@@ -393,7 +365,6 @@ const WatchParty: React.FC<WatchPartyProps> = () => {
           )}
         </div>
         
-        {/* Chat panel */}
         {!isTheaterMode && (
           <div className="md:w-1/4 md:ml-4 mt-4 md:mt-0 flex flex-col bg-card rounded-lg overflow-hidden">
             <div className="p-3 border-b">

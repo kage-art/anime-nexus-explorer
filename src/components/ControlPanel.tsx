@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Play, Pause, SkipBack, SkipForward, Volume, Volume2, VolumeX, Maximize, 
-  Minimize, Monitor, TheatreMode } from 'lucide-react';
+  Minimize, Monitor, Layout } from 'lucide-react';
 
 interface ControlPanelProps {
   isPlaying: boolean;
@@ -112,7 +112,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           size="sm" 
           onClick={onToggleTheaterMode}
         >
-          {isTheaterMode ? <Monitor className="h-4 w-4" /> : <TheatreMode className="h-4 w-4" />}
+          {isTheaterMode ? <Monitor className="h-4 w-4" /> : <Layout className="h-4 w-4" />}
         </Button>
       </div>
     </div>
